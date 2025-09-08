@@ -42,13 +42,33 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Handle form submission
+  // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const email = document.getElementById("email").value;
     const activity = document.getElementById("activity").value;
 
+    // Prevent duplicate registration on the client side
     try {
+      // Fetch current activities to check participants
+      const activitiesResponse = await fetch("/activities");
+      const activities = await activitiesResponse.json();
+      const selectedActivity = activities[activity];
+
+      if (
+        selectedActivity &&
+        selectedActivity.participants.includes(email)
+      ) {
+        messageDiv.textContent = "You are already registered for this activity.";
+        messageDiv.className = "error";
+        messageDiv.classList.remove("hidden");
+        setTimeout(() => {
+          messageDiv.classList.add("hidden");
+        }, 5000);
+        return;
+      }
+
       const response = await fetch(
         `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
         {
@@ -80,6 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error signing up:", error);
     }
   });
+
 
   // Initialize app
   fetchActivities();
